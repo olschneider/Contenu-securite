@@ -2,7 +2,7 @@ import requests
 import argparse
 import difflib
 
-parser = argparse.ArgumentParser(description='Test OneEqualOne SQLi')
+parser = argparse.ArgumentParser(description='Test Comment GET SQLi')
 parser.add_argument("url", help='URL to test')
 parser.add_argument('--diff',action="store_true", help='Print Difference between normal request and forged request')
 args = parser.parse_args()
