@@ -1,15 +1,15 @@
 Un JWT (JSON Web Token) est un format de jeton utilisé pour authentifier et échanger des informations de manière sécurisée entre deux parties (client et serveur, par exemple). 
 Il est souvent utilisé dans l’authentification des API.
-## Structure d’un JWT
+# Structure d’un JWT
 Un JWT est composé de trois parties, séparées par des points (.) :
 
-# Header (En-tête) : Contient des informations sur l’algorithme de signature et le type de jeton. Exemple :
+## Header (En-tête) : Contient des informations sur l’algorithme de signature et le type de jeton. Exemple :
 json
 {
   "alg": "HS256",
   "typ": "JWT"
 }
-# Payload (Corps du jeton) : Contient les données (claims) comme l’ID utilisateur, le rôle, l’expiration du jeton, etc. Exemple :
+## Payload (Corps du jeton) : Contient les données (claims) comme l’ID utilisateur, le rôle, l’expiration du jeton, etc. Exemple :
 json
 {
   "sub": "1234567890",
@@ -17,7 +17,7 @@ json
   "iat": 1710636800,
   "exp": 1710640400
 }
-# Signature : Permet de vérifier l’authenticité du JWT. Elle est générée avec un algorithme de hachage (HS256, RS256, etc.), une clé secrète et les deux premières parties du JWT.
+## Signature : Permet de vérifier l’authenticité du JWT. Elle est générée avec un algorithme de hachage (HS256, RS256, etc.), une clé secrète et les deux premières parties du JWT.
 
 Un JWT ressemble à ceci :
 
@@ -38,3 +38,5 @@ Portable et lisible (base64).
 Impossible de révoquer un JWT (sauf via une liste noire).
 Si mal sécurisé, peut être intercepté et utilisé frauduleusement.
 Taille plus grande qu’un simple identifiant de session.
+
+
