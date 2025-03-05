@@ -1,0 +1,12 @@
+import sys
+import os
+
+from dotenv import load_dotenv
+load_dotenv()
+def main() -> int:
+    """Test"""
+    ret = 0
+    return ret
+
+if __name__ == '__main__':
+    sys.exit(main())

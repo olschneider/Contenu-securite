@@ -1,0 +1,80 @@
+[
+    {
+        "name": "Administrateurs d'entreprise",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Administrateurs de domaine",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Administrateur de schéma",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Administrateurs",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Opérateurs de compte",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Opérateurs de sauvegarde",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Opérateurs d'impression",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Opérateurs de serveur",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Contrôleurs de domaine",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Contrôleurs de domaine en lecture seule",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Propriétaires créateurs de stratégies de groupe",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Opérateurs cryptographiques",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    },
+    {
+        "name": "Utilisateurs COM distribués",
+        "source": "ActiveDirectory",
+        "type": "BUILTIN",
+        "objet": "Groupe"
+    }
+]
