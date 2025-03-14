@@ -10,3 +10,5 @@ Résumé de la relation avec l'ancien modèle de Tiering:
 - le niveau 2 est aussi divisé en 2 partie:
     - Accès utilisateur – qui comprend tous les scénarios d’accès B2B, B2C et public
     - Accès aux applications – pour prendre en charge les voies d’accès aux API et la surface d’attaque qui en résulte
+
+    
