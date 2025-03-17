@@ -1,9 +1,12 @@
 # Info de Reverse sous windows
 
 ## La pile
-Les stacks frame peuvent ne pas être contigues suivant la randomisation. Voir Windows Internals
-En 64bits, la calling convention est fastcall.Extrait de la doc microsoft: Les arguments entiers sont passés dans les registres RCX, RDX, R8 et R9. Les arguments à virgule flottante sont passés dans XMM0L, XMM1L, XMM2L et XMM3L. Les arguments de plus de 16 octets sont passés par référence. En 32 bits, seulement 2 registres sont utilisés.
-Sous windows, la pile s'étend vers le bas.
+Les stacks frame peuvent ne pas être contigues suivant la randomisation. Voir Windows Internals  
+Sous windows, la pile s'étend vers le bas.  
+En 64bits, la calling convention est fastcall.Extrait de la doc microsoft: Les arguments entiers sont passés dans les registres RCX, RDX, R8 et R9. Les arguments à virgule flottante sont passés dans XMM0L, XMM1L, XMM2L et XMM3L. Les arguments de plus de 16 octets sont passés par référence.   
+Pour 32 bits, la calling convention est cdecl.  
+Les paramètres sont passés par la stack dans l'ordre inverse de leur déclaration.  
+De manière générale, les retours de fonction se font via EAX.
 
 
 ## demo avec windbg
@@ -40,7 +43,10 @@ g pour executer le binaire jusqu'au prochain breakpoint (il faut parfois le fair
 
 kb pour afficher la callstack (de manière générale k est pour la call stack)
 
+db memoire memoire(optionnel) affiche la zone mémoire découpée en octet avec une représentation ascii
+
 Exemple avec la fonction foo du modules testre (binaire 32 Bits)
+Attention c'est du little-endian
 avant le lancement de la fonction 
 EIP e27220
 ESP b3f884
@@ -56,7 +62,9 @@ EBP b3f880
 
 La fonction est désasemblée comme suit
 ![alt text](image-1.png)
-
+On voit que les 2 paramètres sont récupérés de la pile, l'opération est faite, stocké sur la pile avant l'appel à printf etc....  
+et voici la pile avant l'épilogue de la fonction
+![alt text](image-2.png)
 
 .restart pour redémarrer une session de débug
  
