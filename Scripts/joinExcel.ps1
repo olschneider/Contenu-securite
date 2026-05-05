@@ -168,8 +168,22 @@ function Read-ExcelViaComObject {
 
             foreach ($col in $targetCols) {
                 if ($headerIndex.ContainsKey($col)) {
-                    $cellVal = $sheet.Cells($rowIndex, $startCol + $headerIndex[$col] - 1).Text
-                    $record[$col] = [string]$cellVal
+                    $cell    = $sheet.Cells($rowIndex, $startCol + $headerIndex[$col] - 1)
+                    $rawVal  = $cell.Value2
+                    $cellVal = if ($null -eq $rawVal) {
+                        ""
+                    } elseif ($rawVal -is [double] -or $rawVal -is [int] -or $rawVal -is [long]) {
+                        $numFmt = $cell.NumberFormat
+                        if ($numFmt -match '[dDmMyY]' -and $numFmt -notmatch '0') {
+                            try { [datetime]::FromOADate($rawVal).ToString("dd/MM/yyyy") }
+                            catch { [string]$rawVal }
+                        } else {
+                            [string]$rawVal
+                        }
+                    } else {
+                        [string]$rawVal
+                    }
+                    $record[$col] = $cellVal
                     if ($cellVal -ne "") { $isEmpty = $false }
                 } else {
                     $record[$col] = ""
@@ -348,7 +362,7 @@ function Invoke-DataJoin {
                         if ($k -ne "__matched__") { $merged[$k] = $leftRow[$k] }
                     }
                     foreach ($k in $rightRow.Keys) {
-                        if ($k -ne $rightKey -or -not $merged.ContainsKey($k)) {
+                        if ($k -ne $rightKey -or -not $merged.Contains($k)) {
                             $merged[$k] = $rightRow[$k]
                         }
                     }
@@ -365,7 +379,7 @@ function Invoke-DataJoin {
                         if ($k -ne "__matched__") { $merged[$k] = $leftRow[$k] }
                     }
                     foreach ($col in $rightSource.Data.Headers) {
-                        if (-not $merged.ContainsKey($col)) { $merged[$col] = "" }
+                        if (-not $merged.Contains($col)) { $merged[$col] = "" }
                     }
                     $merged["__matched__"] = $false
                     $newResult.Add($merged)
@@ -485,7 +499,7 @@ function New-HtmlReport {
     foreach ($row in $Rows) {
         $jsRow = [ordered]@{}
         foreach ($col in $columns) {
-            $jsRow[$col] = if ($row.ContainsKey($col)) { $row[$col] } else { "" }
+            $jsRow[$col] = if ($row.Contains($col)) { $row[$col] } else { "" }
         }
         $rowsForJs.Add($jsRow)
     }
@@ -607,14 +621,6 @@ function New-HtmlReport {
     flex: 1;
     min-width: 200px;
     max-width: 400px;
-  }
-
-  .search-wrap svg {
-    position: absolute;
-    left: 10px; top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    pointer-events: none;
   }
 
   #globalSearch {
@@ -800,7 +806,6 @@ function New-HtmlReport {
     gap: 12px;
   }
   .empty-state.visible { display: flex; }
-  .empty-state svg { opacity: .3; }
   .empty-state p { font-size: 15px; }
   .empty-state small { font-size: 12px; font-family: var(--font-mono); }
 
@@ -834,7 +839,6 @@ function New-HtmlReport {
     <div>
       <div class="header-badges">
         <span class="badge badge-green" title="Sources de données">
-          <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h11A1.5 1.5 0 0 1 15 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9Z"/></svg>
           $($Config.sources.Count) source(s)
         </span>
         <span class="badge badge-blue" title="Type de jointure">JOIN $joinTypeLabel</span>
@@ -846,31 +850,18 @@ function New-HtmlReport {
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="search-wrap">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.868-3.834ZM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0Z"/>
-      </svg>
       <input type="text" id="globalSearch" placeholder="Rechercher dans toutes les colonnes..." autocomplete="off">
     </div>
 
     <button class="toolbar-btn" id="btnFilters" onclick="toggleFilters()">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5Z"/>
-      </svg>
       Filtres colonnes
     </button>
 
     <button class="toolbar-btn" onclick="clearAllFilters()">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Z"/>
-      </svg>
       Réinitialiser
     </button>
 
     <button class="toolbar-btn" onclick="exportCsv()">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5Z"/>
-        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3Z"/>
-      </svg>
       Export CSV
     </button>
 
@@ -895,10 +886,6 @@ function New-HtmlReport {
       <tbody id="tableBody"></tbody>
     </table>
     <div class="empty-state" id="emptyState">
-      <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14Zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16Z"/>
-        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0ZM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995Z"/>
-      </svg>
       <p>Aucun résultat trouvé</p>
       <small id="emptyHint">Essayez de modifier vos critères de recherche</small>
     </div>
@@ -943,11 +930,7 @@ function buildHeader() {
   COLUMNS.forEach((col, i) => {
     const th = document.createElement("th");
     th.dataset.col = col;
-    th.innerHTML = escapeHtml(col) +
-      '<span class="sort-icon">' +
-        '<svg class="arrow-up" width="8" height="5" viewBox="0 0 8 5"><path d="M4 0 8 5H0Z" fill="currentColor"/></svg>' +
-        '<svg class="arrow-down" width="8" height="5" viewBox="0 0 8 5"><path d="M4 5 0 0h8Z" fill="currentColor"/></svg>' +
-      '</span>';
+    th.innerHTML = escapeHtml(col) + '<span class="sort-icon">↕</span>';
     th.addEventListener("click", () => handleSort(col, th));
     tr.appendChild(th);
   });
@@ -1280,4 +1263,3 @@ try {
     Write-Log $_.ScriptStackTrace "ERROR"
     exit 1
 }
-
