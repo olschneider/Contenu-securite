@@ -45,9 +45,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # FONCTIONS UTILITAIRES
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function Write-Log {
     param([string]$Message, [string]$Level = "INFO")
@@ -77,9 +77,9 @@ function Test-ImportExcelModule {
     return (Get-Module -ListAvailable -Name ImportExcel) -ne $null
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # LECTURE EXCEL VIA COM (Microsoft Excel requis)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function Read-ExcelViaComObject {
     param(
@@ -169,19 +169,16 @@ function Read-ExcelViaComObject {
             foreach ($col in $targetCols) {
                 if ($headerIndex.ContainsKey($col)) {
                     $cell    = $sheet.Cells($rowIndex, $startCol + $headerIndex[$col] - 1)
-                    $rawVal  = $cell.Value2
-                    $cellVal = if ($null -eq $rawVal) {
+                    $rawVal  = $cell.Value   # .Value : DateTime pour dates, Double pour nombres, String pour texte
+                    $cellVal = if ($null -eq $rawVal -or $rawVal -is [System.DBNull]) {
                         ""
+                    } elseif ($rawVal -is [datetime]) {
+                        $rawVal.ToString("dd/MM/yyyy")
                     } elseif ($rawVal -is [double] -or $rawVal -is [int] -or $rawVal -is [long]) {
-                        $numFmt = $cell.NumberFormat
-                        if ($numFmt -match '[dDmMyY]' -and $numFmt -notmatch '0') {
-                            try { [datetime]::FromOADate($rawVal).ToString("dd/MM/yyyy") }
-                            catch { [string]$rawVal }
-                        } else {
-                            [string]$rawVal
-                        }
+                        [string]$rawVal   # nombre pur, pas de formatage local
                     } else {
-                        [string]$rawVal
+                        # Nettoyer les caractères de contrôle et espaces insécables éventuels
+                        ([string]$rawVal).Trim() -replace '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\u00A0]', ''
                     }
                     $record[$col] = $cellVal
                     if ($cellVal -ne "") { $isEmpty = $false }
@@ -210,9 +207,9 @@ function Read-ExcelViaComObject {
     }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # LECTURE EXCEL VIA ImportExcel (fallback sans Excel installé)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function Read-ExcelViaImportExcel {
     param(
@@ -251,9 +248,9 @@ function Read-ExcelViaImportExcel {
     return @{ Headers = $targetCols; Rows = $rows }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # DISPATCHER LECTURE EXCEL
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function Read-ExcelSource {
     param(
@@ -290,9 +287,9 @@ function Read-ExcelSource {
     }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # LOGIQUE DE JOINTURE
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function Invoke-DataJoin {
     param(
@@ -424,9 +421,9 @@ function Invoke-DataJoin {
     return $cleanResult
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # APPLICATION DES ALIAS DE COLONNES
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function Apply-ColumnAliases {
     param(
@@ -448,9 +445,9 @@ function Apply-ColumnAliases {
     return $renamed
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # SÉRIALISATION JSON MINIMALISTE (sans dépendance externe)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function ConvertTo-SafeJson {
     param([object]$InputObject)
@@ -460,9 +457,9 @@ function ConvertTo-SafeJson {
     return $json
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # GÉNÉRATION DU FICHIER HTML
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function New-HtmlReport {
     param(
@@ -520,7 +517,7 @@ function New-HtmlReport {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>$Title</title>
 <style>
-  /* ── Reset & Base ─────────────────────────────── */
+  /*  Reset & Base  */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -552,7 +549,7 @@ function New-HtmlReport {
     min-height: 100vh;
   }
 
-  /* ── Layout ───────────────────────────────────── */
+  /*  Layout  */
   .app { display: flex; flex-direction: column; min-height: 100vh; }
 
   header {
@@ -607,7 +604,7 @@ function New-HtmlReport {
   .badge-red    { color: var(--accent3); border-color: rgba(247,129,102,.3); background: rgba(247,129,102,.08); }
   .badge-gray   { color: var(--text-muted); border-color: var(--border); background: var(--surface2); }
 
-  /* ── Toolbar ──────────────────────────────────── */
+  /*  Toolbar  */
   .toolbar {
     display: flex;
     align-items: center;
@@ -663,7 +660,7 @@ function New-HtmlReport {
   }
   .counter span { color: var(--accent); font-weight: 600; }
 
-  /* ── Column Filters ───────────────────────────── */
+  /*  Column Filters  */
   .filter-row-container {
     display: none;
     padding: 8px 0 2px;
@@ -708,7 +705,7 @@ function New-HtmlReport {
   .filter-cell input:focus { border-color: var(--accent); }
   .filter-cell input::placeholder { color: var(--text-muted); opacity: .6; }
 
-  /* ── Table Container ──────────────────────────── */
+  /*  Table Container  */
   main {
     flex: 1;
     padding: 16px 28px 32px;
@@ -728,7 +725,7 @@ function New-HtmlReport {
     font-size: 13px;
   }
 
-  /* ── Table Head ───────────────────────────────── */
+  /*  Table Head  */
   thead { background: var(--surface); }
 
   th {
@@ -766,7 +763,7 @@ function New-HtmlReport {
   th.sort-asc  .sort-icon .arrow-up   { color: var(--sort-asc);  }
   th.sort-desc .sort-icon .arrow-down { color: var(--sort-desc); }
 
-  /* ── Table Body ───────────────────────────────── */
+  /*  Table Body  */
   tbody tr {
     border-bottom: 1px solid var(--border);
     transition: background .1s;
@@ -795,7 +792,7 @@ function New-HtmlReport {
     padding: 0 1px;
   }
 
-  /* ── Empty State ──────────────────────────────── */
+  /*  Empty State  */
   .empty-state {
     display: none;
     flex-direction: column;
@@ -809,7 +806,7 @@ function New-HtmlReport {
   .empty-state p { font-size: 15px; }
   .empty-state small { font-size: 12px; font-family: var(--font-mono); }
 
-  /* ── Footer ───────────────────────────────────── */
+  /*  Footer  */
   footer {
     text-align: center;
     padding: 12px 28px;
@@ -819,7 +816,7 @@ function New-HtmlReport {
     font-family: var(--font-mono);
   }
 
-  /* ── Scrollbar ────────────────────────────────── */
+  /*  Scrollbar  */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: var(--surface); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -829,7 +826,7 @@ function New-HtmlReport {
 <body>
 <div class="app">
 
-<!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+<!--  HEADER  -->
 <header>
   <div class="header-top">
     <div class="header-title">
@@ -878,7 +875,7 @@ function New-HtmlReport {
   </div>
 </header>
 
-<!-- ── MAIN ───────────────────────────────────────────────────────────── -->
+<!--  MAIN  -->
 <main>
   <div class="table-wrap">
     <table id="dataTable">
@@ -892,7 +889,7 @@ function New-HtmlReport {
   </div>
 </main>
 
-<!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+<!--  FOOTER  -->
 <footer>
   Généré le $generatedAt · Sources : $sourceInfo · PowerShell Excel Join Reporter
 </footer>
@@ -900,19 +897,19 @@ function New-HtmlReport {
 </div><!-- /.app -->
 
 <script>
-// ── DATA ──────────────────────────────────────────────────────────────────
+//  DATA 
 const RAW_DATA    = $jsonData;
 const COLUMNS     = $jsonColumns;
 const TOTAL_ROWS  = RAW_DATA.length;
 
-// ── STATE ─────────────────────────────────────────────────────────────────
+//  STATE 
 let globalQuery   = "";
 let colFilters    = {};
 let sortCol       = null;
 let sortDir       = "asc"; // "asc" | "desc"
 let filtersVisible = false;
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+//  INIT 
 function init() {
   buildHeader();
   buildFilterInputs();
@@ -924,7 +921,7 @@ function init() {
   });
 }
 
-// ── HEADER ────────────────────────────────────────────────────────────────
+//  HEADER 
 function buildHeader() {
   const tr = document.getElementById("headerRow");
   COLUMNS.forEach((col, i) => {
@@ -936,7 +933,7 @@ function buildHeader() {
   });
 }
 
-// ── FILTER INPUTS ─────────────────────────────────────────────────────────
+//  FILTER INPUTS 
 function buildFilterInputs() {
   const fr = document.getElementById("filterRow");
   const colWidths = computeColWidths();
@@ -979,7 +976,7 @@ function computeColWidths() {
   return widths;
 }
 
-// ── SORT ──────────────────────────────────────────────────────────────────
+//  SORT 
 function handleSort(col, th) {
   const ths = document.querySelectorAll("th");
   ths.forEach(h => h.classList.remove("sort-asc", "sort-desc"));
@@ -994,7 +991,7 @@ function handleSort(col, th) {
   render();
 }
 
-// ── FILTER ────────────────────────────────────────────────────────────────
+//  FILTER 
 function getFilteredData() {
   return RAW_DATA.filter(row => {
     // Filtre global
@@ -1029,7 +1026,7 @@ function getSortedData(data) {
   });
 }
 
-// ── HIGHLIGHT ─────────────────────────────────────────────────────────────
+//  HIGHLIGHT 
 function highlightText(text, query) {
   if (!query) return escapeHtml(text);
   const escaped = escapeHtml(text);
@@ -1037,7 +1034,7 @@ function highlightText(text, query) {
   return escaped.replace(new RegExp("(" + escapedQ + ")", "gi"), "<mark>`$1`</mark>");
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────
+//  RENDER 
 function render() {
   const filtered = getFilteredData();
   const sorted   = getSortedData(filtered);
@@ -1075,7 +1072,7 @@ function render() {
   tbody.appendChild(frag);
 }
 
-// ── TOGGLE FILTERS ────────────────────────────────────────────────────────
+//  TOGGLE FILTERS 
 function toggleFilters() {
   filtersVisible = !filtersVisible;
   const container = document.getElementById("filterRowContainer");
@@ -1084,7 +1081,7 @@ function toggleFilters() {
   btn.classList.toggle("active", filtersVisible);
 }
 
-// ── CLEAR ─────────────────────────────────────────────────────────────────
+//  CLEAR 
 function clearAllFilters() {
   globalQuery = "";
   colFilters  = {};
@@ -1096,7 +1093,7 @@ function clearAllFilters() {
   render();
 }
 
-// ── EXPORT CSV ────────────────────────────────────────────────────────────
+//  EXPORT CSV 
 function exportCsv() {
   const filtered = getSortedData(getFilteredData());
   const BOM = "\uFEFF"; // UTF-8 BOM pour Excel
@@ -1122,7 +1119,7 @@ function csvEscape(v) {
   return v;
 }
 
-// ── UTILS ─────────────────────────────────────────────────────────────────
+//  UTILS 
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
@@ -1132,26 +1129,26 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────────────
+//  BOOT 
 document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
 "@
 
-    $html | Out-File -FilePath $OutputPath -Encoding UTF8 -Force
+    [System.IO.File]::WriteAllText($OutputPath, $html, [System.Text.Encoding]::new('UTF-8', $false))
     Write-Log "Fichier HTML généré : $OutputPath" "SUCCESS"
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # POINT D'ENTRÉE PRINCIPAL
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 function Main {
     Write-Log "=== Excel Join to HTML Reporter ===" "INFO"
     Write-Log "Config : $ConfigFile"
 
-    # ── Lecture configuration ──────────────────────────────────────────────
+    #  Lecture configuration 
     $configPath = if ([System.IO.Path]::IsPathRooted($ConfigFile)) {
         $ConfigFile
     } else {
@@ -1184,7 +1181,7 @@ function Main {
     Write-Log "Type de jointure : $($config.joinType.ToUpper())"
     Write-Log "Sortie : $outputPath"
 
-    # ── Détection du lecteur Excel ─────────────────────────────────────────
+    #  Détection du lecteur Excel 
     $readerMode = $null
     if (Test-ExcelInstalled) {
         $readerMode = "com"
@@ -1201,7 +1198,7 @@ Options :
 "@
     }
 
-    # ── Lecture de chaque source Excel ────────────────────────────────────
+    #  Lecture de chaque source Excel 
     $sources = [System.Collections.Generic.List[hashtable]]::new()
     foreach ($srcConfig in $config.sources) {
         $srcHashtable = @{}
@@ -1211,10 +1208,10 @@ Options :
         $sources.Add(@{ Config = $srcHashtable; Data = $data })
     }
 
-    # ── Jointure ──────────────────────────────────────────────────────────
+    #  Jointure 
     $joined = Invoke-DataJoin -Sources $sources -JoinType $config.joinType
 
-    # ── Alias de colonnes ─────────────────────────────────────────────────
+    #  Alias de colonnes 
     $aliases = @{}
     if ($config.PSObject.Properties["columnAliases"] -and $config.columnAliases) {
         $config.columnAliases.PSObject.Properties | ForEach-Object {
@@ -1227,11 +1224,11 @@ Options :
         $joined = Apply-ColumnAliases -Rows $joined -Aliases $aliases
     }
 
-    # ── Ordre des colonnes ────────────────────────────────────────────────
+    #  Ordre des colonnes 
     $colOrder    = if ($config.PSObject.Properties["columnOrder"]    -and $config.columnOrder)    { [string[]]$config.columnOrder    } else { @() }
     $hiddenCols  = if ($config.PSObject.Properties["hiddenColumns"]  -and $config.hiddenColumns)  { [string[]]$config.hiddenColumns  } else { @() }
 
-    # ── Génération HTML ───────────────────────────────────────────────────
+    #  Génération HTML 
     $configHt = @{
         sources  = @($config.sources | ForEach-Object {
             @{ file = $_.file; sheet = $_.sheet }
@@ -1252,9 +1249,9 @@ Options :
     Write-Log "Total lignes exportées : $($joined.Count)"
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # EXÉCUTION
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 try {
     Main
