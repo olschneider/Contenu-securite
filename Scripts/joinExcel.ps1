@@ -335,10 +335,11 @@ function Invoke-DataJoin {
 
         Write-Log "Source $($s+1) '$($rightSource.Config.file)' : jointure sur [$leftKey] = [$rightKey]"
 
-        # Construire un index par clé sur la source droite
+        # Construire un index par clé sur la source droite (clés vides exclues)
         $rightIndex = @{}
         foreach ($rightRow in $rightSource.Data.Rows) {
-            $keyVal = $rightRow[$rightKey]
+            $keyVal = [string]$rightRow[$rightKey]
+            if ([string]::IsNullOrWhiteSpace($keyVal)) { continue }
             if (-not $rightIndex.ContainsKey($keyVal)) {
                 $rightIndex[$keyVal] = [System.Collections.Generic.List[hashtable]]::new()
             }
@@ -349,7 +350,22 @@ function Invoke-DataJoin {
         $matchedRightKeys = [System.Collections.Generic.HashSet[string]]::new()
 
         foreach ($leftRow in $result) {
-            $keyVal = $leftRow[$leftKey]
+            $keyVal = [string]$leftRow[$leftKey]
+            # Clé gauche vide : pas de jointure possible, conserver la ligne telle quelle (LEFT/FULL)
+            if ([string]::IsNullOrWhiteSpace($keyVal)) {
+                if ($JoinType -ne "inner") {
+                    $merged = [ordered]@{}
+                    foreach ($k in $leftRow.Keys) {
+                        if ($k -ne "__matched__") { $merged[$k] = $leftRow[$k] }
+                    }
+                    foreach ($col in $rightSource.Data.Headers) {
+                        if (-not $merged.Contains($col)) { $merged[$col] = "" }
+                    }
+                    $merged["__matched__"] = $false
+                    $newResult.Add($merged)
+                }
+                continue
+            }
             $rightMatches = if ($rightIndex.ContainsKey($keyVal)) { $rightIndex[$keyVal] } else { $null }
 
             if ($rightMatches -and $rightMatches.Count -gt 0) {
